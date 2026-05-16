@@ -60,13 +60,13 @@ class TestErrorHandler:
         """测试处理已知错误"""
         error = LLMError("Test")
         result = ErrorHandler.handle(error)
-        assert result["error"] == "LLM_ERROR"
+        assert result["code"] == "LLM_ERROR"
     
     def test_handle_unknown_error(self):
         """测试处理未知错误"""
         error = ValueError("Test")
         result = ErrorHandler.handle(error)
-        assert result["error"] == "INTERNAL_ERROR"
+        assert result["code"] == "INTERNAL_ERROR"
     
     def test_should_retry(self):
         """测试重试判断"""

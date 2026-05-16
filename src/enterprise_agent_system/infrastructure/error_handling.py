@@ -39,7 +39,7 @@ class EnterpriseAgentError(Exception):
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
         return {
-            "error": self.code,
+            "code": self.code,
             "message": self.message,
             "category": self.category.value,
             "details": self.details,
@@ -132,7 +132,7 @@ class ErrorHandler:
             return error.to_dict()
         
         return {
-            "error": "INTERNAL_ERROR",
+            "code": "INTERNAL_ERROR",
             "message": str(error),
             "category": ErrorCategory.SYSTEM.value,
             "recoverable": False,
