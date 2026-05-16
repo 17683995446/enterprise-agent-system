@@ -68,3 +68,12 @@ python-dotenv>=1.0.0
 # httpx - Modern HTTP client for async and sync requests
 # Used for GitHub API interactions and external service calls
 httpx>=0.26.0
+
+# Distributed Task Execution
+# ------------------------
+# redis - Redis Python client for caching and message broker
+redis>=5.0.0
+# celery - Distributed task queue for async task execution
+celery>=5.3.0
+# flower - Real-time web-based monitor for Celery
+flower>=2.0.0
