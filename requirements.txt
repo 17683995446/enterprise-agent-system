@@ -66,8 +66,10 @@ isort>=5.12.0
 # python-dotenv - Reads key-value pairs from .env file
 python-dotenv>=1.0.0
 # httpx - Modern HTTP client for async and sync requests
-# Used for GitHub API interactions and external service calls
+# Used for GitHub API, LLM API, and external service calls
 httpx>=0.26.0
+# aiofiles - Async file operations
+aiofiles>=23.0.0
 
 # Distributed Task Execution
 # ------------------------
