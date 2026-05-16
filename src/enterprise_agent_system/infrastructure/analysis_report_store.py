@@ -33,7 +33,7 @@ class AnalysisReportEntity(Base):
     language = Column(String(50), nullable=True)
     file_path = Column(String(500), nullable=True)
     llm_insights = Column(Text, nullable=True)
-    metadata = Column(JSON, nullable=True)
+    extra_metadata = Column("metadata", JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
@@ -73,7 +73,7 @@ class AnalysisReportStore:
                 language=report_data.get('language'),
                 file_path=report_data.get('file_path'),
                 llm_insights=report_data.get('llm_insights'),
-                metadata=json.dumps(report_data.get('metadata', {})) if report_data.get('metadata') else None
+                extra_metadata=json.dumps(report_data.get('metadata', {})) if report_data.get('metadata') else None
             )
             session.add(entity)
             session.commit()
@@ -182,7 +182,7 @@ class AnalysisReportStore:
             "language": entity.language,
             "file_path": entity.file_path,
             "llm_insights": entity.llm_insights,
-            "metadata": json.loads(entity.metadata) if entity.metadata else {},
+            "metadata": json.loads(entity.extra_metadata) if entity.extra_metadata else {},
             "created_at": entity.created_at.isoformat() if entity.created_at else None,
             "updated_at": entity.updated_at.isoformat() if entity.updated_at else None
         }
