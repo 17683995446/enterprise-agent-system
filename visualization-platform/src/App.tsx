@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import { Home, Layers, GitBranch, Activity, FileText, Monitor, Menu, X, RefreshCw, Clock } from 'lucide-react'
+import { Home, Layers, GitBranch, Activity, FileText, Monitor, Menu, X, RefreshCw, Clock, ListChecks } from 'lucide-react'
 import HomePage from './pages/Home'
 import ArchitecturePage from './pages/Architecture'
 import WorkflowsPage from './pages/Workflows'
 import SequencesPage from './pages/Sequences'
 import DocsPage from './pages/Docs'
 import MonitorPage from './pages/Monitor'
+import TasksPage from './pages/Tasks'
 import './index.css'
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
 
   const navItems = [
     { to: '/', icon: Home, label: '首页' },
+    { to: '/tasks', icon: ListChecks, label: '任务管理' },
     { to: '/architecture', icon: Layers, label: '架构图' },
     { to: '/workflows', icon: GitBranch, label: '流程图' },
     { to: '/sequences', icon: Activity, label: '时序图' },
@@ -178,6 +180,7 @@ function App() {
         <main className="relative">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/tasks" element={<TasksPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
             <Route path="/workflows" element={<WorkflowsPage />} />
             <Route path="/sequences" element={<SequencesPage />} />
