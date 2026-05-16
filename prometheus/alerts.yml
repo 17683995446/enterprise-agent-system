@@ -1,0 +1,139 @@
+groups:
+  - name: agent_system_alerts
+    interval: 30s
+    rules:
+      # API响应时间告警
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API响应时间过高"
+          description: "API {{ $labels.endpoint }} p95响应时间超过1秒，当前: {{ $value }}秒"
+
+      - alert: APICriticalLatency
+        expr: histogram_quantile(0.99, rate(api_request_duration_seconds_bucket[5m])) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API响应时间严重过高"
+          description: "API {{ $labels.endpoint }} p99响应时间超过5秒，当前: {{ $value }}秒"
+
+      # 错误率告警
+      - alert: APIHighErrorRate
+        expr: rate(api_requests_total{status_code=~"5.."}[5m]) / rate(api_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API错误率过高"
+          description: "API {{ $labels.endpoint }} 错误率超过5%，当前: {{ $value | humanizePercentage }}"
+
+      - alert: APICriticalErrorRate
+        expr: rate(api_requests_total{status_code=~"5.."}[5m]) / rate(api_requests_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API错误率严重过高"
+          description: "API {{ $labels.endpoint }} 错误率超过10%，当前: {{ $value | humanizePercentage }}"
+
+      # 队列深度告警
+      - alert: TaskQueueBacklog
+        expr: agent_queue_depth > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "任务队列积压"
+          description: "任务队列 {{ $labels.queue_name }} 积压超过100个任务，当前: {{ $value }}"
+
+      - alert: TaskQueueCriticalBacklog
+        expr: agent_queue_depth > 500
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "任务队列严重积压"
+          description: "任务队列 {{ $labels.queue_name }} 严重积压超过500个任务，当前: {{ $value }}"
+
+      # 任务失败告警
+      - alert: HighTaskFailureRate
+        expr: rate(agent_tasks_total{status="failure"}[10m]) / rate(agent_tasks_total[10m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "任务失败率过高"
+          description: "{{ $labels.task_type }} 任务失败率超过10%，当前: {{ $value | humanizePercentage }}"
+
+      - alert: CriticalTaskFailureRate
+        expr: rate(agent_tasks_total{status="failure"}[5m]) / rate(agent_tasks_total[5m]) > 0.25
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "任务失败率严重过高"
+          description: "{{ $labels.task_type }} 任务失败率超过25%，当前: {{ $value | humanizePercentage }}"
+
+      # 系统资源告警
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU使用率过高"
+          description: "系统CPU使用率超过80%，当前: {{ $value }}%"
+
+      - alert: CriticalCPUUsage
+        expr: system_cpu_usage_percent > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CPU使用率严重过高"
+          description: "系统CPU使用率超过95%，当前: {{ $value }}%"
+
+      # 知识图谱告警
+      - alert: KnowledgeGraphQueryErrors
+        expr: rate(knowledge_graph_queries_total{status="failure"}[10m]) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "知识图谱查询错误"
+          description: "知识图谱查询错误率过高，当前: {{ $value }}错误/秒"
+
+      # 活跃任务告警
+      - alert: NoActiveWorkers
+        expr: sum(agent_active_tasks) == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "没有活跃的Worker"
+          description: "系统没有活跃的Worker处理任务超过15分钟"
+
+  - name: celery_alerts
+    interval: 30s
+    rules:
+      - alert: CeleryWorkerDown
+        expr: sum(celery_worker_tasks_total) == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Celery Worker已宕机"
+          description: "所有Celery Worker已宕机超过10分钟"
+
+      - alert: CeleryQueueLength
+        expr: celery_queue_length > 1000
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery队列长度过高"
+          description: "Celery队列 {{ $labels.queue_name }} 长度超过1000，当前: {{ $value }}"
