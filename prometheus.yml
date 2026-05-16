@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'enterprise-agent-monitor'
+
+scrape_configs:
+  - job_name: 'enterprise-agent'
+    static_configs:
+      - targets: ['agent-api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
