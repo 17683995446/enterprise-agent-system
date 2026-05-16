@@ -144,26 +144,36 @@ class AnalysisReportStore:
     
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
-        session = self.db_manager.get_session()
         try:
-            from sqlalchemy import func
+            from sqlalchemy import create_engine, func
+            from sqlalchemy.orm import sessionmaker
+            
+            engine = create_engine("sqlite:///data/enterprise_agent.db")
+            Session = sessionmaker(bind=engine)
+            session = Session()
             
             total = session.query(func.count(AnalysisReportEntity.id)).scalar()
             avg_score = session.query(func.avg(AnalysisReportEntity.quality_score)).scalar()
             
-            # 按类型统计
             type_stats = session.query(
                 AnalysisReportEntity.report_type,
                 func.count(AnalysisReportEntity.id)
             ).group_by(AnalysisReportEntity.report_type).all()
+            
+            session.close()
             
             return {
                 "total_reports": total or 0,
                 "average_score": float(avg_score) if avg_score else 0.0,
                 "by_type": {t: c for t, c in type_stats}
             }
-        finally:
-            session.close()
+        except Exception as e:
+            return {
+                "total_reports": 0,
+                "average_score": 0.0,
+                "by_type": {},
+                "error": str(e)
+            }
     
     def _entity_to_dict(self, entity: AnalysisReportEntity) -> Dict[str, Any]:
         """转换实体为字典"""
