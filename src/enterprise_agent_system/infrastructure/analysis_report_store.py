@@ -1,17 +1,21 @@
 """
-分析报告持久化存储
+分析报告持久化存储 - 同步版本
 提供分析报告的数据库存储和查询功能
 """
 
 import json
+import os
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from sqlalchemy import Column, String, Text, Float, DateTime, Integer, JSON, Index
-from sqlalchemy.ext.declarative import declarative_base
-from enterprise_agent_system.infrastructure.database_session_manager import DatabaseSessionManager
+from sqlalchemy import Column, String, Text, Float, DateTime, Integer, JSON, Index, create_engine, func
+from sqlalchemy.orm import sessionmaker, declarative_base
 from enterprise_agent_system.infrastructure.enterprise_logging_system import get_logger_instance
 
 logger = get_logger_instance(__name__)
+
+# 确保数据目录存在
+os.makedirs('data', exist_ok=True)
+
 Base = declarative_base()
 
 
@@ -37,7 +41,6 @@ class AnalysisReportEntity(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
-    # 索引
     __table_args__ = (
         Index('idx_report_type', 'report_type'),
         Index('idx_quality_score', 'quality_score'),
@@ -46,16 +49,21 @@ class AnalysisReportEntity(Base):
 
 
 class AnalysisReportStore:
-    """分析报告存储管理器"""
+    """分析报告存储管理器 - 同步版本"""
     
-    def __init__(self, db_manager: Optional[DatabaseSessionManager] = None):
-        self.db_manager = db_manager or DatabaseSessionManager()
+    def __init__(self, db_path: str = "data/enterprise_agent.db"):
+        self.db_path = db_path
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        
+        self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+        Base.metadata.create_all(self.engine)
+        self.Session = sessionmaker(bind=self.engine)
     
     def save_report(self, report_data: Dict[str, Any]) -> str:
         """保存分析报告"""
         import uuid
         
-        session = self.db_manager.get_session()
+        session = self.Session()
         try:
             report_id = str(uuid.uuid4())
             entity = AnalysisReportEntity(
@@ -77,7 +85,6 @@ class AnalysisReportStore:
             )
             session.add(entity)
             session.commit()
-            logger.info(f"Report saved: {report_id}")
             return report_id
         except Exception as e:
             session.rollback()
@@ -88,7 +95,7 @@ class AnalysisReportStore:
     
     def get_report(self, report_id: str) -> Optional[Dict[str, Any]]:
         """获取单个报告"""
-        session = self.db_manager.get_session()
+        session = self.Session()
         try:
             entity = session.query(AnalysisReportEntity).filter(
                 AnalysisReportEntity.id == report_id
@@ -109,7 +116,7 @@ class AnalysisReportStore:
         offset: int = 0
     ) -> List[Dict[str, Any]]:
         """列出报告"""
-        session = self.db_manager.get_session()
+        session = self.Session()
         try:
             query = session.query(AnalysisReportEntity)
             
@@ -128,7 +135,7 @@ class AnalysisReportStore:
     
     def delete_report(self, report_id: str) -> bool:
         """删除报告"""
-        session = self.db_manager.get_session()
+        session = self.Session()
         try:
             result = session.query(AnalysisReportEntity).filter(
                 AnalysisReportEntity.id == report_id
@@ -144,14 +151,8 @@ class AnalysisReportStore:
     
     def get_stats(self) -> Dict[str, Any]:
         """获取统计信息"""
+        session = self.Session()
         try:
-            from sqlalchemy import create_engine, func
-            from sqlalchemy.orm import sessionmaker
-            
-            engine = create_engine("sqlite:///data/enterprise_agent.db")
-            Session = sessionmaker(bind=engine)
-            session = Session()
-            
             total = session.query(func.count(AnalysisReportEntity.id)).scalar()
             avg_score = session.query(func.avg(AnalysisReportEntity.quality_score)).scalar()
             
@@ -160,20 +161,13 @@ class AnalysisReportStore:
                 func.count(AnalysisReportEntity.id)
             ).group_by(AnalysisReportEntity.report_type).all()
             
-            session.close()
-            
             return {
                 "total_reports": total or 0,
                 "average_score": float(avg_score) if avg_score else 0.0,
                 "by_type": {t: c for t, c in type_stats}
             }
-        except Exception as e:
-            return {
-                "total_reports": 0,
-                "average_score": 0.0,
-                "by_type": {},
-                "error": str(e)
-            }
+        finally:
+            session.close()
     
     def _entity_to_dict(self, entity: AnalysisReportEntity) -> Dict[str, Any]:
         """转换实体为字典"""

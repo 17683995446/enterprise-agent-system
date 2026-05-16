@@ -71,7 +71,7 @@ app.include_router(report_router, prefix="/api/v1/reports", tags=["Reports"])
 @app.get("/", response_model=ApiResponse[Dict[str, Any]])
 async def root():
     """Root endpoint with unified response"""
-    return ApiResponse.success({
+    data = {
         "name": "Enterprise Agent System",
         "version": "2.1.0",
         "status": "running",
@@ -83,21 +83,23 @@ async def root():
             "llm_analysis": "/api/v1/llm",
             "docs": "/docs",
         }
-    })
+    }
+    response = ApiResponse.success(data)
+    return response.model_dump()
 
 
 @app.get("/health", response_model=ApiResponse[HealthStatus])
 async def health_check():
     """Health check endpoint"""
     uptime = time.time() - start_time
-    return ApiResponse.success(
-        HealthStatus(
-            status="healthy",
-            version="2.1.0",
-            uptime=uptime,
-            services={"database": True, "llm": True, "api": True}
-        )
+    health_data = HealthStatus(
+        status="healthy",
+        version="2.1.0",
+        uptime=uptime,
+        services={"database": True, "llm": True, "api": True}
     )
+    response = ApiResponse.success(health_data)
+    return response.model_dump()
 
 
 @app.get("/api/system/info", response_model=ApiResponse[SystemInfo])
@@ -108,27 +110,28 @@ async def get_system_info(current_user: Dict = Depends(get_current_user)):
     llm = get_llm_manager()
     stats = llm.get_stats()
     
-    return ApiResponse.success(
-        SystemInfo(
-            version="2.1.0",
-            model="Qwen/Qwen2.5-7B-Instruct",
-            cache_size=stats.get("cache_size", 0),
-            cache_hits=stats.get("cached_requests", 0),
-            cache_misses=stats.get("total_requests", 0) - stats.get("cached_requests", 0),
-            total_analysis=stats.get("total_requests", 0)
-        )
+    system_info = SystemInfo(
+        version="2.1.0",
+        model="Qwen/Qwen2.5-7B-Instruct",
+        cache_size=stats.get("cache_size", 0),
+        cache_hits=stats.get("cached_requests", 0),
+        cache_misses=stats.get("total_requests", 0) - stats.get("cached_requests", 0),
+        total_analysis=stats.get("total_requests", 0)
     )
+    response = ApiResponse.success(system_info)
+    return response.model_dump()
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Unified exception handler"""
     logger.error(f"Unhandled exception: {exc}")
-    return ApiResponse.error(
+    response = ApiResponse.error(
         error_code=ErrorCode.INTERNAL_ERROR,
         message="Internal server error",
         details=str(exc)
-    ).dict()
+    )
+    return JSONResponse(content=response.model_dump(), status_code=500)
 
 
 @app.exception_handler(HTTPException)
@@ -146,11 +149,12 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     elif 400 <= exc.status_code < 500:
         error_code = ErrorCode.BAD_REQUEST
     
-    return ApiResponse.error(
+    response = ApiResponse.error(
         error_code=error_code,
         message=exc.detail,
         details={"status_code": exc.status_code}
-    ).dict()
+    )
+    return JSONResponse(content=response.model_dump(), status_code=exc.status_code)
 
 
 def start_api_server(host: str = "0.0.0.0", port: int = 8000):

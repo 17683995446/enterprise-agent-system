@@ -41,13 +41,14 @@ class ApiResponse(BaseModel, Generic[T]):
     """统一API响应格式"""
     status: ResponseStatus = Field(..., description="响应状态")
     data: Optional[T] = Field(None, description="响应数据")
-    error: Optional[Dict[str, Any]] = Field(None, description="错误信息")
+    error_info: Optional[Dict[str, Any]] = Field(None, description="错误信息", alias="error")
     meta: Optional[Dict[str, Any]] = Field(None, description="元数据")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="时间戳")
     request_id: Optional[str] = Field(None, description="请求ID")
-    
+
     class Config:
-        schema_extra = {
+        populate_by_name = True
+        json_schema_extra = {
             "example": {
                 "status": "success",
                 "data": {"result": "ok"},
@@ -55,7 +56,7 @@ class ApiResponse(BaseModel, Generic[T]):
                 "timestamp": "2024-05-16T12:00:00Z"
             }
         }
-    
+
     @classmethod
     def success(cls, data: T, meta: Optional[Dict] = None, request_id: Optional[str] = None) -> "ApiResponse[T]":
         """成功响应"""
@@ -65,14 +66,14 @@ class ApiResponse(BaseModel, Generic[T]):
             meta=meta,
             request_id=request_id
         )
-    
+
     @classmethod
     def error(cls, error_code: ErrorCode, message: str, details: Optional[Any] = None, request_id: Optional[str] = None) -> "ApiResponse[T]":
         """错误响应"""
         return cls(
             status=ResponseStatus.ERROR,
-            error={
-                "code": error_code,
+            error_info={
+                "code": error_code.value,
                 "message": message,
                 "details": details,
                 "traceback": None  # 生产环境不返回traceback

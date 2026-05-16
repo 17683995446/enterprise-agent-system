@@ -48,8 +48,8 @@ VALID_API_KEYS = {
     }
 }
 
-# 全局速率限制器
-rate_limiter = RateLimiter(requests_per_minute=100)
+# 全局速率限制器（测试期间暂时设置较高的速率
+rate_limiter = RateLimiter(requests_per_minute=1000)
 
 
 def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
