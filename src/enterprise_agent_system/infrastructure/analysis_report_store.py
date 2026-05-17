@@ -53,9 +53,17 @@ class AnalysisReportStore:
     
     def __init__(self, db_path: str = "data/enterprise_agent.db"):
         self.db_path = db_path
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
         
-        self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+        if not db_path.startswith(':memory:'):
+            dir_path = os.path.dirname(db_path)
+            if dir_path:
+                os.makedirs(dir_path, exist_ok=True)
+        
+        if db_path.startswith(':memory:'):
+            self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+        else:
+            self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+        
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
     
