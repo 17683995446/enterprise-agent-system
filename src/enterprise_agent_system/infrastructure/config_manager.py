@@ -6,6 +6,7 @@ Configuration Management System
 import os
 import yaml
 import re
+import threading
 from pathlib import Path
 from typing import Dict, Any, Optional
 from dataclasses import dataclass, field
@@ -261,18 +262,21 @@ class ConfigManager:
 
 # 全局配置实例
 _config_manager: Optional[ConfigManager] = None
+_config_lock = threading.RLock()
 
 
 def get_config() -> AppConfig:
     """获取配置"""
     global _config_manager
-    if _config_manager is None:
-        _config_manager = ConfigManager()
-    return _config_manager.get()
+    with _config_lock:
+        if _config_manager is None:
+            _config_manager = ConfigManager()
+        return _config_manager.get()
 
 
 def reload_config():
     """重新加载配置"""
     global _config_manager
-    if _config_manager:
-        _config_manager.reload()
+    with _config_lock:
+        if _config_manager:
+            _config_manager.reload()

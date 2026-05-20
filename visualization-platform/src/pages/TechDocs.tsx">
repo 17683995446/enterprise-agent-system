@@ -1,0 +1,570 @@
+import { useState, useCallback } from 'react'
+import { BookOpen, Code, Layers, Zap, Database, Box, ExternalLink, Copy, CheckCircle2 } from 'lucide-react'
+
+export default function TechDocsPage() {
+  const [activeSection, setActiveSection] = useState('overview')
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  const copyCode = useCallback((code: string, id: string) => {
+    navigator.clipboard.writeText(code)
+    setCopiedCode(id)
+    setTimeout(() => setCopiedCode(null), 2000)
+  }, [])
+
+  const sections = [
+    { id: 'overview', label: '系统概览', icon: BookOpen },
+    { id: 'architecture', label: '架构设计', icon: Layers },
+    { id: 'modules', label: '核心模块', icon: Box },
+    { id: 'api', label: 'API设计', icon: Zap },
+    { id: 'database', label: '数据存储', icon: Database },
+    { id: 'deployment', label: '部署指南', icon: Box },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <div className="border-b border-slate-700/50 bg-slate-900/50 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600">
+              <BookOpen className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">技术文档</h1>
+              <p className="text-slate-400">Enterprise Agent System 完整技术说明</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-8">
+          {/* Sidebar Navigation */}
+          <aside className="w-64 shrink-0">
+            <nav className="sticky top-8 space-y-1">
+              {sections.map((section) => {
+                const Icon = section.icon
+                return (
+                  <button
+                    key={section.id}
+                    onClick={() => setActiveSection(section.id)}
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all ${
+                      activeSection === section.id
+                        ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{section.label}</span>
+                  </button>
+                )
+              })}
+            </nav>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            <div className="space-y-8">
+              {/* Overview Section */}
+              {activeSection === 'overview' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-4">系统概述</h2>
+                    
+                    <div className="prose prose-invert max-w-none">
+                      <p className="text-slate-300 text-lg mb-6">
+                        Enterprise Agent System 是一个企业级的双模式Agent系统，支持任务执行和空闲优化两种模式。
+                        系统采用五层架构设计，具有高度模块化、可扩展性和生产级的可靠性。
+                      </p>
+
+                      <h3 className="text-xl font-semibold text-white mt-8 mb-4">核心特性</h3>
+                      <div className="grid md:grid-cols-2 gap-4 mb-8">
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="p-2 rounded-lg bg-cyan-500/20">
+                              <Zap className="w-5 h-5 text-cyan-400" />
+                            </div>
+                            <span className="font-semibold text-white">双模式Agent</span>
+                          </div>
+                          <p className="text-sm text-slate-400">任务执行模式 + 空闲改进模式，自适应智能调度</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="p-2 rounded-lg bg-purple-500/20">
+                              <Layers className="w-5 h-5 text-purple-400" />
+                            </div>
+                            <span className="font-semibold text-white">五层架构</span>
+                          </div>
+                          <p className="text-sm text-slate-400">清晰的分层设计，高度模块化</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="p-2 rounded-lg bg-emerald-500/20">
+                              <Database className="w-5 h-5 text-emerald-400" />
+                            </div>
+                            <span className="font-semibold text-white">知识图谱</span>
+                          </div>
+                          <p className="text-sm text-slate-400">持久化记忆和经验学习</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="p-2 rounded-lg bg-amber-500/20">
+                              <Box className="w-5 h-5 text-amber-400" />
+                            </div>
+                            <span className="font-semibold text-white">生产就绪</span>
+                          </div>
+                          <p className="text-sm text-slate-400">完整的测试、监控和错误处理</p>
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl font-semibold text-white mt-8 mb-4">技术栈</h3>
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <h4 className="font-semibold text-cyan-400 mb-2">后端</h4>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">Python 3.12+</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">FastAPI</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">SQLAlchemy</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400">Redis</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500/20 text-yellow-400">asyncio</span>
+                          </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <h4 className="font-semibold text-cyan-400 mb-2">前端</h4>
+                          <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400">React 18</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">TypeScript</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">Vite</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400">TailwindCSS</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400">ReactFlow</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* Architecture Section */}
+              {activeSection === 'architecture' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">五层架构设计</h2>
+                    
+                    <div className="space-y-8">
+                      <div className="relative">
+                        {/* Layer 1 */}
+                        <div className="p-6 rounded-xl bg-gradient-to-r from-cyan-500/20 to-cyan-500/10 border border-cyan-500/30 mb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-cyan-400">1. Presentation Layer (表现层)</h3>
+                              <p className="text-slate-400 text-sm mt-1">负责用户界面和可视化展示</p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400">React + Vite</span>
+                          </div>
+                          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">组件：</span>
+                              <span className="text-cyan-300 ml-2">Dashboard, Architecture, Workflows, Sequences</span>
+                            </div>
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">功能：</span>
+                              <span className="text-cyan-300 ml-2">可视化展示、交互界面、实时更新</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Layer 2 */}
+                        <div className="p-6 rounded-xl bg-gradient-to-r from-teal-500/20 to-teal-500/10 border border-teal-500/30 mb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-teal-400">2. Application Layer (应用层)</h3>
+                              <p className="text-slate-400 text-sm mt-1">定义应用用例和业务流程</p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-teal-500/20 text-teal-400">Python</span>
+                          </div>
+                          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">组件：</span>
+                              <span className="text-teal-300 ml-2">CLI App, Vue Analyzer, Reactivity Analyzer</span>
+                            </div>
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">功能：</span>
+                              <span className="text-teal-300 ml-2">命令行处理、项目分析、报告生成</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Layer 3 */}
+                        <div className="p-6 rounded-xl bg-gradient-to-r from-purple-500/20 to-purple-500/10 border border-purple-500/30 mb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-purple-400">3. Infrastructure Layer (基础设施层)</h3>
+                              <p className="text-slate-400 text-sm mt-1">提供外部服务和技术支持</p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">FastAPI + Redis</span>
+                          </div>
+                          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">组件：</span>
+                              <span className="text-purple-300 ml-2">Logging, Config, GitHub, REST API</span>
+                            </div>
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">功能：</span>
+                              <span className="text-purple-300 ml-2">日志记录、配置管理、API服务、缓存</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Layer 4 */}
+                        <div className="p-6 rounded-xl bg-gradient-to-r from-blue-500/20 to-blue-500/10 border border-blue-500/30 mb-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-blue-400">4. Core Layer (核心层)</h3>
+                              <p className="text-slate-400 text-sm mt-1">核心业务逻辑</p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">Agent System</span>
+                          </div>
+                          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">组件：</span>
+                              <span className="text-blue-300 ml-2">Agent Orchestrator, Storage Backend, Factory</span>
+                            </div>
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">功能：</span>
+                              <span className="text-blue-300 ml-2">任务调度、状态管理、存储抽象</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Layer 5 */}
+                        <div className="p-6 rounded-xl bg-gradient-to-r from-emerald-500/20 to-emerald-500/10 border border-emerald-500/30">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="text-lg font-bold text-emerald-400">5. Domain Layer (领域层)</h3>
+                              <p className="text-slate-400 text-sm mt-1">定义核心数据模型和业务规则</p>
+                            </div>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400">Data Models</span>
+                          </div>
+                          <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">组件：</span>
+                              <span className="text-emerald-300 ml-2">Task Model, Memory Model, Knowledge Graph</span>
+                            </div>
+                            <div className="p-3 rounded-lg bg-slate-900/50">
+                              <span className="text-slate-400">功能：</span>
+                              <span className="text-emerald-300 ml-2">数据定义、业务枚举、类型安全</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* Modules Section */}
+              {activeSection === 'modules' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">核心模块详解</h2>
+                    
+                    <div className="space-y-6">
+                      {/* Agent Orchestrator */}
+                      <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center space-x-2">
+                          <Zap className="w-5 h-5" />
+                          <span>Agent Orchestrator (Agent编排器)</span>
+                        </h3>
+                        <p className="text-slate-400 mb-4">
+                          负责任务的调度、执行和监控的核心引擎，支持并发任务处理和优先级管理。
+                        </p>
+                        <div className="mb-4">
+                          <h4 className="font-semibold text-slate-300 mb-2">核心功能：</h4>
+                          <ul className="text-sm text-slate-400 space-y-1 ml-4 list-disc">
+                            <li>任务队列管理和调度</li>
+                            <li>并发执行和资源控制</li>
+                            <li>任务状态监控和更新</li>
+                            <li>错误处理和重试机制</li>
+                            <li>超时控制和任务取消</li>
+                          </ul>
+                        </div>
+                        <div className="relative">
+                          <pre className="bg-slate-950 rounded-lg p-4 overflow-x-auto text-sm">
+                            <code className="text-emerald-400">
+{`# 核心类定义
+class AgentOrchestrator:
+    async def execute_task(self, task: AgentTask) -> ExecutionResult:
+        pass
+    
+    async def manage_queue(self) -> None:
+        pass
+    
+    async def monitor_resources(self) -> ResourceStats:
+        pass`}
+                            </code>
+                          </pre>
+                          <button
+                            onClick={() => copyCode('class AgentOrchestrator:\n    async def execute_task...', 'orchestrator')}
+                            className="absolute top-2 right-2 p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400"
+                          >
+                            {copiedCode === 'orchestrator' ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Storage Backend */}
+                      <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-purple-400 mb-4 flex items-center space-x-2">
+                          <Database className="w-5 h-5" />
+                          <span>Storage Backend (存储后端)</span>
+                        </h3>
+                        <p className="text-slate-400 mb-4">
+                          统一的存储抽象接口，支持内存和数据库双模式，提供CRUD操作和查询功能。
+                        </p>
+                        <div className="mb-4">
+                          <h4 className="font-semibold text-slate-300 mb-2">支持的后端：</h4>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-cyan-500/20 text-cyan-400">InMemory</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-400">SQLite</span>
+                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-400">PostgreSQL</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FastAPI REST API */}
+                      <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-cyan-400 mb-4 flex items-center space-x-2">
+                          <ExternalLink className="w-5 h-5" />
+                          <span>FastAPI REST API</span>
+                        </h3>
+                        <p className="text-slate-400 mb-4">
+                          RESTful API服务层，提供完整的HTTP接口访问系统功能。
+                        </p>
+                        <div className="space-y-3">
+                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-950">
+                            <span className="px-2 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400">GET</span>
+                            <code className="text-slate-300 text-sm">/api/v1/tasks</code>
+                            <span className="text-slate-500 text-sm ml-auto">获取任务列表</span>
+                          </div>
+                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-950">
+                            <span className="px-2 py-1 rounded text-xs font-bold bg-blue-500/20 text-blue-400">POST</span>
+                            <code className="text-slate-300 text-sm">/api/v1/tasks</code>
+                            <span className="text-slate-500 text-sm ml-auto">创建新任务</span>
+                          </div>
+                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-950">
+                            <span className="px-2 py-1 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400">PUT</span>
+                            <code className="text-slate-300 text-sm">/api/v1/tasks/{'{id}'}</code>
+                            <span className="text-slate-500 text-sm ml-auto">更新任务状态</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* API Section */}
+              {activeSection === 'api' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">API设计</h2>
+                    
+                    <div className="space-y-8">
+                      <div>
+                        <h3 className="text-xl font-semibold text-white mb-4">端点概览</h3>
+                        <div className="space-y-4">
+                          <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-lg font-semibold text-cyan-400">健康检查</span>
+                              <span className="px-2 py-1 rounded text-xs font-bold bg-green-500/20 text-green-400">GET</span>
+                            </div>
+                            <code className="text-sm text-slate-300">GET /health</code>
+                            <p className="text-sm text-slate-400 mt-2">返回系统健康状态和基本信息</p>
+                          </div>
+                          
+                          <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-lg font-semibold text-purple-400">任务管理</span>
+                              <span className="px-2 py-1 rounded text-xs font-bold bg-blue-500/20 text-blue-400">REST</span>
+                            </div>
+                            <div className="mt-2 space-y-2 text-sm">
+                              <code className="block text-slate-300">GET /api/v1/tasks</code>
+                              <code className="block text-slate-300">POST /api/v1/tasks</code>
+                              <code className="block text-slate-300">GET /api/v1/tasks/{'{id}'}</code>
+                              <code className="block text-slate-300">PUT /api/v1/tasks/{'{id}'}</code>
+                              <code className="block text-slate-300">DELETE /api/v1/tasks/{'{id}'}</code>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-semibold text-white mb-4">数据模型</h3>
+                        <pre className="bg-slate-950 rounded-lg p-6 overflow-x-auto">
+                          <code className="text-emerald-400 text-sm">
+{`// Task Schema
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "status": "pending|in_progress|paused|completed|failed",
+  "priority": "low|medium|high|urgent",
+  "created_at": "datetime",
+  "updated_at": "datetime"
+}`}
+                          </code>
+                        </pre>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* Database Section */}
+              {activeSection === 'database' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">数据存储方案</h2>
+                    
+                    <div className="space-y-6">
+                      <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-blue-400 mb-4">SQLAlchemy ORM</h3>
+                        <p className="text-slate-400 mb-4">
+                          使用SQLAlchemy作为ORM层，支持SQLite和PostgreSQL，提供类型安全的数据库操作。
+                        </p>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold text-slate-300 mb-2">支持的数据库：</h4>
+                            <div className="space-y-1">
+                              <div className="flex items-center space-x-2 text-sm text-slate-400">
+                                <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                <span>SQLite (开发模式)</span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-sm text-slate-400">
+                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <span>PostgreSQL (生产环境)</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-300 mb-2">数据模型：</h4>
+                            <ul className="text-sm text-slate-400 space-y-1">
+                              <li>• Task 表 - 任务存储</li>
+                              <li>• Memory 表 - 记忆存储</li>
+                              <li>• KnowledgeGraph 表 - 知识图谱</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                        <h3 className="text-lg font-bold text-red-400 mb-4">Redis 缓存层</h3>
+                        <p className="text-slate-400 mb-4">
+                          使用Redis作为缓存层，提供高性能的热点数据访问和会话管理。
+                        </p>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="font-semibold text-slate-300 mb-2">缓存策略：</h4>
+                            <ul className="text-sm text-slate-400 space-y-1">
+                              <li>• LRU 淘汰策略</li>
+                              <li>• TTL 过期时间</li>
+                              <li>• 读写穿透</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-300 mb-2">使用场景：</h4>
+                            <ul className="text-sm text-slate-400 space-y-1">
+                              <li>• 任务状态缓存</li>
+                              <li>• 会话数据</li>
+                              <li>• 频率限制</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+
+              {/* Deployment Section */}
+              {activeSection === 'deployment' && (
+                <div className="space-y-6">
+                  <section className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8">
+                    <h2 className="text-2xl font-bold text-white mb-6">部署指南</h2>
+                    
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-xl font-semibold text-white mb-4">快速开始</h3>
+                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <pre className="text-sm">
+                            <code className="text-emerald-400">
+{`# 克隆项目
+git clone https://github.com/your-repo/enterprise-agent-system.git
+cd enterprise-agent-system
+
+# 安装依赖
+pip install -r requirements.txt
+
+# 启动API服务器
+python start_api.py
+
+# 启动可视化平台
+cd visualization-platform
+npm install
+npm run dev`}
+                            </code>
+                          </pre>
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <h3 className="text-lg font-bold text-blue-400 mb-4">环境变量</h3>
+                          <div className="space-y-3 text-sm">
+                            <div>
+                              <code className="text-cyan-400">DATABASE_URL</code>
+                              <p className="text-slate-400">数据库连接字符串</p>
+                            </div>
+                            <div>
+                              <code className="text-cyan-400">REDIS_URL</code>
+                              <p className="text-slate-400">Redis连接地址</p>
+                            </div>
+                            <div>
+                              <code className="text-cyan-400">API_HOST</code>
+                              <p className="text-slate-400">API监听地址 (0.0.0.0)</p>
+                            </div>
+                            <div>
+                              <code className="text-cyan-400">API_PORT</code>
+                              <p className="text-slate-400">API监听端口 (8000)</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700/50">
+                          <h3 className="text-lg font-bold text-purple-400 mb-4">Docker 部署</h3>
+                          <pre className="text-sm bg-slate-950 rounded-lg p-4">
+                            <code className="text-purple-400">
+{`# 构建和启动
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down`}
+                            </code>
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  )
+}

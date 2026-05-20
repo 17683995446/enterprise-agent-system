@@ -10,7 +10,7 @@ Domain Layer - Core Data Models and Enumerations
 
 from enum import Enum, IntEnum
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TypeVar, Type
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -27,6 +27,52 @@ def generate_unique_entity_identifier(prefix: str = "entity") -> str:
 def get_current_utc_timestamp() -> datetime:
     """获取当前 UTC 时间戳"""
     return datetime.now(timezone.utc)
+
+
+E = TypeVar('E', bound=Enum)
+
+
+def validate_and_convert_enum(
+    value: Any, 
+    enum_type: Type[E], 
+    default_value: E
+) -> E:
+    """
+    验证并转换为枚举类型
+    
+    支持：
+    - 枚举对象本身
+    - 字符串（枚举名称或值）
+    - 整数（对于 IntEnum）
+    
+    Args:
+        value: 要验证的值
+        enum_type: 目标枚举类型
+        default_value: 转换失败时的默认值
+        
+    Returns:
+        有效的枚举值
+    """
+    if isinstance(value, enum_type):
+        return value
+    
+    if value is None:
+        return default_value
+    
+    if isinstance(value, str):
+        value_lower = value.lower()
+        for enum_val in enum_type:
+            if enum_val.name.lower() == value_lower or str(enum_val.value) == value_lower:
+                return enum_val
+            if str(enum_val.value) == value:
+                return enum_val
+        return default_value
+    
+    if isinstance(value, int) and hasattr(enum_type, '_value2member_map_'):
+        if value in enum_type._value2member_map_:
+            return enum_type(value)
+    
+    return default_value
 
 
 # =============================================================
@@ -121,6 +167,16 @@ class TaskExecutionDataModel:
 
     def __post_init__(self):
         """初始化后处理"""
+        self.execution_status = validate_and_convert_enum(
+            self.execution_status,
+            TaskExecutionStatusEnumeration,
+            TaskExecutionStatusEnumeration.PENDING_STATUS
+        )
+        self.priority_level = validate_and_convert_enum(
+            self.priority_level,
+            TaskPriorityLevelEnumeration,
+            TaskPriorityLevelEnumeration.MEDIUM_PRIORITY_LEVEL
+        )
         self.progress_percentage_value = max(
             0.0, min(1.0, self.progress_percentage_value)
         )
@@ -163,6 +219,16 @@ class MemoryStorageDataModel:
         default_factory=get_current_utc_timestamp
     )
     source_task_id: Optional[str] = field(default=None)
+    
+    def __post_init__(self):
+        """初始化后处理"""
+        self.category_type = validate_and_convert_enum(
+            self.category_type,
+            MemoryCategoryTypeEnumeration,
+            MemoryCategoryTypeEnumeration.GENERAL_MEMORY_CATEGORY
+        )
+        # 确保重要性评分在合理范围
+        self.importance_score = max(1, min(5, self.importance_score))
 
 
 @dataclass

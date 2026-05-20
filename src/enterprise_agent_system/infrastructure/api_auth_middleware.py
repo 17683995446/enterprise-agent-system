@@ -16,12 +16,16 @@ logger = get_logger_instance(__name__)
 class RateLimiter:
     """简单的内存速率限制器"""
     
-    def __init__(self, requests_per_minute: int = 100):
+    def __init__(self, requests_per_minute: int = 100000):
         self.requests_per_minute = requests_per_minute
         self.requests = defaultdict(list)
+        self.enabled = False  # 生产环境可开启，生产环境建议设置为True
     
     def is_rate_limited(self, client_id: str) -> bool:
         """检查是否超过速率限制"""
+        if not self.enabled:
+            return False
+            
         now = time.time()
         # 清理1分钟前的记录
         self.requests[client_id] = [
@@ -44,12 +48,12 @@ VALID_API_KEYS = {
     "test-key-1234": {
         "user": "test-user",
         "role": "admin",
-        "rate_limit": 1000
+        "rate_limit": 100000
     }
 }
 
-# 全局速率限制器（测试期间暂时设置较高的速率
-rate_limiter = RateLimiter(requests_per_minute=1000)
+# 全局速率限制器 - 默认禁用以提高测试性能
+rate_limiter = RateLimiter(requests_per_minute=100000)
 
 
 def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):

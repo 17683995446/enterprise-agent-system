@@ -1,0 +1,503 @@
+import { useCallback, useState, useMemo } from 'react'
+import {
+  ReactFlow,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  Node,
+  Edge,
+  MarkerType,
+  Panel,
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+import { Box, Package, Code, Database, Zap, Layers, Info } from 'lucide-react'
+
+// 完整的模块图节点定义
+const initialNodes: Node[] = [
+  // Domain Layer 模块
+  {
+    id: 'domain-models',
+    position: { x: 100, y: 50 },
+    data: { label: 'Core Data Models\n核心数据模型' },
+    style: { background: '#059669', color: 'white', border: 'none', borderRadius: '12px', padding: '16px', fontSize: '13px', boxShadow: '0 8px 25px rgba(5, 150, 105, 0.3)', width: '180px', textAlign: 'center' },
+  },
+  {
+    id: 'task-model',
+    position: { x: 50, y: 150 },
+    data: { label: 'Task Model\n任务模型' },
+    style: { background: '#047857', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'memory-model',
+    position: { x: 230, y: 150 },
+    data: { label: 'Memory Model\n记忆模型' },
+    style: { background: '#047857', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'knowledge-graph',
+    position: { x: 100, y: 260 },
+    data: { label: 'Knowledge Graph\n知识图谱' },
+    style: { background: '#047857', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'experience-learning',
+    position: { x: 260, y: 260 },
+    data: { label: 'Experience Learning\n经验学习' },
+    style: { background: '#047857', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  
+  // Core Layer 模块
+  {
+    id: 'core-layer',
+    position: { x: 500, y: 50 },
+    data: { label: 'Core Components\n核心组件' },
+    style: { background: '#2563eb', color: 'white', border: 'none', borderRadius: '12px', padding: '16px', fontSize: '13px', boxShadow: '0 8px 25px rgba(37, 99, 235, 0.3)', width: '180px', textAlign: 'center' },
+  },
+  {
+    id: 'agent-orchestrator',
+    position: { x: 450, y: 150 },
+    data: { label: 'Agent Orchestrator\nAgent编排器' },
+    style: { background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'storage-backend',
+    position: { x: 630, y: 150 },
+    data: { label: 'Storage Backend\n存储后端' },
+    style: { background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'factory',
+    position: { x: 540, y: 260 },
+    data: { label: 'Agent Factory\nAgent工厂' },
+    style: { background: '#1d4ed8', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  
+  // Infrastructure Layer 模块
+  {
+    id: 'infra-layer',
+    position: { x: 900, y: 50 },
+    data: { label: 'Infrastructure\n基础设施' },
+    style: { background: '#7c3aed', color: 'white', border: 'none', borderRadius: '12px', padding: '16px', fontSize: '13px', boxShadow: '0 8px 25px rgba(124, 58, 237, 0.3)', width: '180px', textAlign: 'center' },
+  },
+  {
+    id: 'logging',
+    position: { x: 850, y: 150 },
+    data: { label: 'Logging System\n日志系统' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'config',
+    position: { x: 1030, y: 150 },
+    data: { label: 'Config Manager\n配置管理' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'fastapi',
+    position: { x: 850, y: 260 },
+    data: { label: 'FastAPI REST API' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'github-analyzer',
+    position: { x: 1030, y: 260 },
+    data: { label: 'GitHub Analyzer' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'redis-cache',
+    position: { x: 940, y: 370 },
+    data: { label: 'Redis Cache\nRedis缓存' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'sqlalchemy',
+    position: { x: 760, y: 370 },
+    data: { label: 'SQLAlchemy\n数据库ORM' },
+    style: { background: '#6d28d9', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  
+  // Application Layer 模块
+  {
+    id: 'app-layer',
+    position: { x: 1300, y: 50 },
+    data: { label: 'Application Layer\n应用层' },
+    style: { background: '#0891b2', color: 'white', border: 'none', borderRadius: '12px', padding: '16px', fontSize: '13px', boxShadow: '0 8px 25px rgba(8, 145, 178, 0.3)', width: '180px', textAlign: 'center' },
+  },
+  {
+    id: 'cli-app',
+    position: { x: 1250, y: 150 },
+    data: { label: 'CLI App\n命令行应用' },
+    style: { background: '#0e7490', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'vue-analyzer',
+    position: { x: 1430, y: 150 },
+    data: { label: 'Vue Analyzer\nVue分析器' },
+    style: { background: '#0e7490', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'reactivity',
+    position: { x: 1340, y: 260 },
+    data: { label: 'Reactivity Analyzer\n响应式分析' },
+    style: { background: '#0e7490', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  
+  // Presentation Layer 模块
+  {
+    id: 'presentation',
+    position: { x: 1300, y: 420 },
+    data: { label: 'Presentation Layer\n表现层' },
+    style: { background: '#06b6d4', color: 'white', border: 'none', borderRadius: '12px', padding: '16px', fontSize: '13px', boxShadow: '0 8px 25px rgba(6, 182, 212, 0.3)', width: '180px', textAlign: 'center' },
+  },
+  {
+    id: 'react-app',
+    position: { x: 1250, y: 520 },
+    data: { label: 'React App\nReact应用' },
+    style: { background: '#0891b2', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+  {
+    id: 'vite',
+    position: { x: 1430, y: 520 },
+    data: { label: 'Vite Dev Server' },
+    style: { background: '#0891b2', color: 'white', border: 'none', borderRadius: '10px', padding: '12px', fontSize: '12px', width: '140px', textAlign: 'center' },
+  },
+]
+
+const initialEdges: Edge[] = [
+  // Domain Layer connections
+  { id: 'e-domain-task', source: 'domain-models', target: 'task-model', animated: true, style: { stroke: '#059669', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#059669' } },
+  { id: 'e-domain-memory', source: 'domain-models', target: 'memory-model', animated: true, style: { stroke: '#059669', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#059669' } },
+  { id: 'e-memory-kg', source: 'memory-model', target: 'knowledge-graph', animated: true, style: { stroke: '#047857', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#047857' } },
+  { id: 'e-memory-exp', source: 'memory-model', target: 'experience-learning', animated: true, style: { stroke: '#047857', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#047857' } },
+  
+  // Core Layer connections
+  { id: 'e-core-orchestrator', source: 'core-layer', target: 'agent-orchestrator', animated: true, style: { stroke: '#2563eb', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' } },
+  { id: 'e-core-storage', source: 'core-layer', target: 'storage-backend', animated: true, style: { stroke: '#2563eb', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' } },
+  { id: 'e-core-factory', source: 'core-layer', target: 'factory', animated: true, style: { stroke: '#2563eb', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563eb' } },
+  { id: 'e-orchestrator-storage', source: 'agent-orchestrator', target: 'storage-backend', animated: true, style: { stroke: '#1d4ed8', strokeWidth: 2, strokeDasharray: '3,3' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#1d4ed8' } },
+  
+  // Infrastructure Layer connections
+  { id: 'e-infra-logging', source: 'infra-layer', target: 'logging', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-infra-config', source: 'infra-layer', target: 'config', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-infra-fastapi', source: 'infra-layer', target: 'fastapi', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-infra-github', source: 'infra-layer', target: 'github-analyzer', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-infra-redis', source: 'infra-layer', target: 'redis-cache', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-infra-sql', source: 'infra-layer', target: 'sqlalchemy', animated: true, style: { stroke: '#7c3aed', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#7c3aed' } },
+  { id: 'e-fastapi-redis', source: 'fastapi', target: 'redis-cache', animated: true, style: { stroke: '#6d28d9', strokeWidth: 2, strokeDasharray: '3,3' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#6d28d9' } },
+  { id: 'e-fastapi-sql', source: 'fastapi', target: 'sqlalchemy', animated: true, style: { stroke: '#6d28d9', strokeWidth: 2, strokeDasharray: '3,3' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#6d28d9' } },
+  
+  // Application Layer connections
+  { id: 'e-app-cli', source: 'app-layer', target: 'cli-app', animated: true, style: { stroke: '#0891b2', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#0891b2' } },
+  { id: 'e-app-vue', source: 'app-layer', target: 'vue-analyzer', animated: true, style: { stroke: '#0891b2', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#0891b2' } },
+  { id: 'e-app-reactivity', source: 'app-layer', target: 'reactivity', animated: true, style: { stroke: '#0891b2', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#0891b2' } },
+  
+  // Presentation Layer connections
+  { id: 'e-presentation-react', source: 'presentation', target: 'react-app', animated: true, style: { stroke: '#06b6d4', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#06b6d4' } },
+  { id: 'e-presentation-vite', source: 'presentation', target: 'vite', animated: true, style: { stroke: '#06b6d4', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#06b6d4' } },
+  
+  // Cross-layer connections
+  { id: 'e-core-domain', source: 'core-layer', target: 'domain-models', animated: true, style: { stroke: '#3b82f6', strokeWidth: 3 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#3b82f6' } },
+  { id: 'e-infra-core', source: 'infra-layer', target: 'core-layer', animated: true, style: { stroke: '#8b5cf6', strokeWidth: 3 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#8b5cf6' } },
+  { id: 'e-app-infra', source: 'app-layer', target: 'infra-layer', animated: true, style: { stroke: '#06b6d4', strokeWidth: 3 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#06b6d4' } },
+  { id: 'e-presentation-app', source: 'presentation', target: 'app-layer', animated: true, style: { stroke: '#06b6d4', strokeWidth: 3 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#06b6d4' } },
+  { id: 'e-react-fastapi', source: 'react-app', target: 'fastapi', animated: true, style: { stroke: '#0891b2', strokeWidth: 3, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#0891b2' } },
+]
+
+// 模块详细信息
+const moduleDetails = {
+  'domain-models': {
+    name: 'Core Data Models',
+    description: '核心数据模型定义，使用Python枚举和数据类',
+    purpose: '定义系统的业务实体和数据结构',
+    filePath: 'src/enterprise_agent_system/domain/core_data_models_and_enumerations.py',
+    keyTypes: ['AgentTask', 'MemoryItem', 'TaskStatus', 'TaskPriority', 'MemoryType'],
+    features: ['类型安全', '数据验证', '文档完善']
+  },
+  'task-model': {
+    name: 'Task Model',
+    description: '任务数据模型，包含任务生命周期状态',
+    purpose: '管理任务的创建、执行、完成全生命周期',
+    states: ['Pending', 'InProgress', 'Paused', 'Completed', 'Failed'],
+    priorities: ['Low', 'Medium', 'High', 'Urgent']
+  },
+  'memory-model': {
+    name: 'Memory Model',
+    description: '记忆数据模型，支持知识图谱和经验学习',
+    purpose: '持久化和检索Agent的记忆和经验',
+    types: ['Knowledge', 'Experience', 'Skill', 'TaskMemory']
+  },
+  'knowledge-graph': {
+    name: 'Knowledge Graph',
+    description: '知识图谱数据结构，支持语义搜索',
+    purpose: '构建和查询知识关联网络',
+    features: ['实体关联', '属性存储', '关系查询']
+  },
+  'experience-learning': {
+    name: 'Experience Learning',
+    description: '经验学习模块，支持经验复用和优化',
+    purpose: '从历史执行中学习，提升后续任务效率',
+    features: ['经验记录', '相似度计算', '模式识别']
+  },
+  'agent-orchestrator': {
+    name: 'Agent Orchestrator',
+    description: 'Agent编排和执行核心引擎',
+    purpose: '负责任务调度、优先级管理和执行协调',
+    features: ['并发执行', '队列管理', '错误处理', '超时控制'],
+    filePath: 'src/enterprise_agent_system/core/agent_orchestrator_and_executor.py'
+  },
+  'storage-backend': {
+    name: 'Storage Backend',
+    description: '统一的存储抽象接口',
+    purpose: '提供内存和数据库双模式存储支持',
+    backends: ['InMemory', 'SQLite', 'PostgreSQL'],
+    filePath: 'src/enterprise_agent_system/core/storage_backend_interface.py'
+  },
+  'logging': {
+    name: 'Enterprise Logging System',
+    description: '企业级日志记录系统',
+    purpose: '结构化日志记录和调试追踪',
+    levels: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+    filePath: 'src/enterprise_agent_system/infrastructure/enterprise_logging_system.py'
+  },
+  'config': {
+    name: 'Configuration Management',
+    description: '应用配置管理系统',
+    purpose: '统一配置加载和验证',
+    sources: ['环境变量', '配置文件', '默认值'],
+    filePath: 'src/enterprise_agent_system/infrastructure/application_configuration_management.py'
+  },
+  'fastapi': {
+    name: 'FastAPI REST API',
+    description: 'RESTful API服务层',
+    purpose: '提供HTTP接口访问系统功能',
+    endpoints: ['/api/tasks', '/api/memory', '/api/health', '/docs'],
+    filePath: 'src/enterprise_agent_system/infrastructure/fastapi_rest_api_application.py'
+  },
+  'cli-app': {
+    name: 'Command Line Interface',
+    description: '命令行应用程序',
+    purpose: '提供终端交互界面',
+    commands: ['analyze', 'scan', 'report', 'start', 'stop'],
+    filePath: 'src/enterprise_agent_system/application/command_line_interface_application.py'
+  }
+}
+
+export default function ModuleDiagramPage() {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+  const [selectedNode, setSelectedNode] = useState<string | null>(null)
+  const [showDetails, setShowDetails] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'dependencies' | 'code'>('overview')
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  )
+
+  const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node.id)
+    setShowDetails(true)
+  }, [])
+
+  const selectedData = selectedNode ? moduleDetails[selectedNode as keyof typeof moduleDetails] : null
+
+  const getNodeColor = (nodeId: string) => {
+    if (nodeId.startsWith('domain') || nodeId.startsWith('task') || nodeId.startsWith('memory') || nodeId.startsWith('knowledge') || nodeId.startsWith('experience')) return 'emerald'
+    if (nodeId.startsWith('core') || nodeId.startsWith('agent') || nodeId.startsWith('storage') || nodeId.startsWith('factory')) return 'blue'
+    if (nodeId.startsWith('infra') || nodeId.startsWith('logging') || nodeId.startsWith('config') || nodeId.startsWith('fastapi') || nodeId.startsWith('github') || nodeId.startsWith('redis') || nodeId.startsWith('sqlalchemy')) return 'purple'
+    if (nodeId.startsWith('app') || nodeId.startsWith('cli') || nodeId.startsWith('vue') || nodeId.startsWith('reactivity')) return 'cyan'
+    if (nodeId.startsWith('presentation') || nodeId.startsWith('react') || nodeId.startsWith('vite')) return 'cyan'
+    return 'slate'
+  }
+
+  const nodeColor = selectedNode ? getNodeColor(selectedNode) : 'slate'
+
+  return (
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <div className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/50 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600">
+              <Package className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">模块关系图</h1>
+              <p className="text-sm text-slate-400">详细展示各模块的依赖关系和功能</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <select
+              className="px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-300 text-sm"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as any)}
+            >
+              <option value="overview">概览模式</option>
+              <option value="dependencies">依赖分析</option>
+              <option value="code">代码视图</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex">
+        {/* Graph Area */}
+        <div className={`flex-1 relative ${showDetails ? 'w-2/3' : 'w-full'}`}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            fitView
+            attributionPosition="bottom-left"
+            className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+          >
+            <Controls className="bg-slate-800 border border-slate-700 rounded-lg shadow-xl" />
+            <Background color="#475569" gap={20} className="opacity-20" />
+            
+            <Panel position="top-left" className="bg-slate-800/90 backdrop-blur-xl border border-slate-700 rounded-lg p-4 shadow-xl">
+              <h3 className="text-sm font-bold text-white mb-2">模块图例</h3>
+              <div className="text-xs text-slate-400 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                  <span>Domain Layer</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span>Core Layer</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-purple-500" />
+                  <span>Infrastructure</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-cyan-500" />
+                  <span>Application</span>
+                </div>
+              </div>
+            </Panel>
+          </ReactFlow>
+        </div>
+
+        {/* Details Panel */}
+        {showDetails && selectedData && (
+          <div className="w-1/3 bg-slate-900/95 backdrop-blur-xl border-l border-slate-700/50 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+                  <Box className="w-5 h-5" />
+                  <span>{selectedData.name}</span>
+                </h2>
+                <button
+                  onClick={() => setShowDetails(false)}
+                  className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-slate-400 mb-6">{selectedData.description}</p>
+
+              <div className="space-y-6">
+                {/* 功能概览 */}
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center space-x-2">
+                    <Info className="w-4 h-4 text-cyan-400" />
+                    <span>功能目的</span>
+                  </h3>
+                  <p className="text-sm text-slate-400 bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
+                    {selectedData.purpose || '核心功能模块'}
+                  </p>
+                </div>
+
+                {/* 文件路径 */}
+                {selectedData.filePath && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center space-x-2">
+                      <Code className="w-4 h-4 text-purple-400" />
+                      <span>源码文件</span>
+                    </h3>
+                    <p className="font-mono text-xs text-emerald-400 bg-slate-800/50 border border-slate-700/50 rounded-lg p-3 break-all">
+                      {selectedData.filePath}
+                    </p>
+                  </div>
+                )}
+
+                {/* 特性或类型 */}
+                {selectedData.features && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center space-x-2">
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      <span>核心特性</span>
+                    </h3>
+                    <div className="grid grid-cols-2 gap-2">
+                      {selectedData.features.map((f: string, i: number) => (
+                        <div key={i} className="px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-slate-300">
+                          {f}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 数据类型 */}
+                {selectedData.keyTypes && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center space-x-2">
+                      <Database className="w-4 h-4 text-emerald-400" />
+                      <span>核心类型</span>
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedData.keyTypes.map((t: string, i: number) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-400"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 查看代码按钮 */}
+                {selectedData.filePath && (
+                  <div className="pt-4 border-t border-slate-700/50">
+                    <button
+                      className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 text-white font-medium hover:shadow-lg transition-all"
+                    >
+                      <Code className="w-4 h-4" />
+                      <span>查看源代码</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer info */}
+      <div className="bg-slate-900/80 backdrop-blur-xl border-t border-slate-700/50 px-6 py-3">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-6">
+            <span className="text-slate-400">
+              <span className="text-emerald-400 font-medium">{nodes.length}</span> 模块 | 
+              <span className="text-blue-400 font-medium ml-1">{edges.length}</span> 关系
+            </span>
+            <span className="text-slate-500">点击模块查看详情</span>
+          </div>
+          <div className="text-slate-500">
+            Enterprise Agent System • Module Diagram
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

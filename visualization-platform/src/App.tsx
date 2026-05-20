@@ -1,13 +1,15 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom'
-import { Home, Layers, GitBranch, Activity, FileText, Monitor, Menu, X, RefreshCw, Clock, ListChecks } from 'lucide-react'
-import HomePage from './pages/Home'
+import { Home, Layers, GitBranch, Activity, FileText, Monitor, Menu, X, RefreshCw, Clock, ListChecks, LayoutDashboard, Package, BookOpen } from 'lucide-react'
+import DashboardPage from './pages/Dashboard'
 import ArchitecturePage from './pages/Architecture'
+import ModuleDiagramPage from './pages/ModuleDiagram'
 import WorkflowsPage from './pages/Workflows'
 import SequencesPage from './pages/Sequences'
-import DocsPage from './pages/Docs'
+import TechDocsPage from './pages/TechDocs'
 import MonitorPage from './pages/Monitor'
 import TasksPage from './pages/Tasks'
+import DocsPage from './pages/Docs'
 import './index.css'
 
 function App() {
@@ -63,12 +65,13 @@ function App() {
   }, [autoRefresh])
 
   const navItems = [
-    { to: '/', icon: Home, label: '首页' },
+    { to: '/', icon: LayoutDashboard, label: '仪表盘' },
     { to: '/tasks', icon: ListChecks, label: '任务管理' },
     { to: '/architecture', icon: Layers, label: '架构图' },
+    { to: '/modules', icon: Package, label: '模块图' },
     { to: '/workflows', icon: GitBranch, label: '流程图' },
     { to: '/sequences', icon: Activity, label: '时序图' },
-    { to: '/docs', icon: FileText, label: '文档' },
+    { to: '/docs', icon: BookOpen, label: '技术文档' },
     { to: '/monitor', icon: Monitor, label: '监控' },
   ]
 
@@ -179,12 +182,13 @@ function App() {
         {/* Main Content */}
         <main className="relative">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<DashboardPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
+            <Route path="/modules" element={<ModuleDiagramPage />} />
             <Route path="/workflows" element={<WorkflowsPage />} />
             <Route path="/sequences" element={<SequencesPage />} />
-            <Route path="/docs" element={<DocsPage />} />
+            <Route path="/docs" element={<TechDocsPage />} />
             <Route path="/monitor" element={<MonitorPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
