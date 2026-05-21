@@ -8,6 +8,7 @@ Domain Layer - Core Data Models and Enumerations
 - 提供类型安全的数据结构
 """
 
+import copy
 from enum import Enum, IntEnum
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, TypeVar, Type
@@ -180,6 +181,10 @@ class TaskExecutionDataModel:
         self.progress_percentage_value = max(
             0.0, min(1.0, self.progress_percentage_value)
         )
+    
+    def deepcopy(self):
+        """创建对象的深拷贝，确保返回副本而非引用"""
+        return copy.deepcopy(self)
 
 
 @dataclass
@@ -229,6 +234,10 @@ class MemoryStorageDataModel:
         )
         # 确保重要性评分在合理范围
         self.importance_score = max(1, min(5, self.importance_score))
+    
+    def deepcopy(self):
+        """创建对象的深拷贝，确保返回副本而非引用"""
+        return copy.deepcopy(self)
 
 
 @dataclass
@@ -260,6 +269,10 @@ class ExperienceLearningDataModel:
     recorded_timestamp: datetime = field(
         default_factory=get_current_utc_timestamp
     )
+    
+    def deepcopy(self):
+        """创建对象的深拷贝，确保返回副本而非引用"""
+        return copy.deepcopy(self)
 
 
 @dataclass
@@ -295,6 +308,10 @@ class SystemStatisticsSnapshotModel:
     current_operating_mode: AgentOperatingModeEnumeration = field(
         default=AgentOperatingModeEnumeration.PAUSED_MODE
     )
+    
+    def deepcopy(self):
+        """创建对象的深拷贝，确保返回副本而非引用"""
+        return copy.deepcopy(self)
 
 
 @dataclass
@@ -314,3 +331,7 @@ class HealthCheckResultModel:
     checked_timestamp: datetime = field(
         default_factory=get_current_utc_timestamp
     )
+    
+    def deepcopy(self):
+        """创建对象的深拷贝，确保返回副本而非引用"""
+        return copy.deepcopy(self)

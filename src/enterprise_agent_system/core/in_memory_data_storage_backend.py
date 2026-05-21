@@ -8,10 +8,12 @@ Core Layer - In-Memory Data Storage Backend
 - 提供知识图谱支持
 - 实现 CRUD 操作
 - 线程安全
+- 返回数据副本，防止引用逃逸
 """
 
 import time
 import threading
+import copy
 from typing import Dict, List, Optional, Any
 from collections import defaultdict
 
@@ -102,10 +104,11 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
             task_id: 任务唯一标识符
 
         Returns:
-            任务数据模型或 None
+            任务数据模型副本或 None
         """
         with self._lock:
-            return self._task_storage.get(task_id)
+            task = self._task_storage.get(task_id)
+            return copy.deepcopy(task) if task else None
 
     def retrieve_pending_tasks_sorted_by_priority(
         self,
@@ -114,7 +117,7 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
         检索待处理任务并按优先级排序
 
         Returns:
-            按优先级降序、创建时间升序排序的任务列表
+            按优先级降序、创建时间升序排序的任务列表（副本）
         """
         with self._lock:
             pending = [
@@ -125,7 +128,7 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
             pending.sort(
                 key=lambda t: (-t.priority_level.value, t.created_timestamp)
             )
-            return pending
+            return [copy.deepcopy(task) for task in pending]
 
     def update_task_entry(
         self, task_id: str, **updates: Any
@@ -175,10 +178,10 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
         检索所有任务
 
         Returns:
-            所有任务列表
+            所有任务列表（副本）
         """
         with self._lock:
-            return list(self._task_storage.values())
+            return [copy.deepcopy(task) for task in self._task_storage.values()]
 
     # =============================================================
     # 记忆管理操作
@@ -239,14 +242,14 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
             memory_id: 记忆唯一标识符
 
         Returns:
-            记忆数据模型或 None
+            记忆数据模型副本或 None
         """
         with self._lock:
             memory = self._memory_storage.get(memory_id)
             if memory:
                 memory.access_count_number += 1
                 memory.last_accessed_timestamp = time.time()
-            return memory
+            return copy.deepcopy(memory) if memory else None
 
     def search_memories_by_text_content(
         self,
@@ -263,10 +266,13 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
             min_importance: 最低重要性
 
         Returns:
-            匹配的记忆列表
+            匹配的记忆列表（副本）
         """
         with self._lock:
-            search_query_lower = search_query.lower()
+            # 安全处理None查询
+            if search_query is None:
+                search_query = ""
+            search_query_lower = str(search_query).lower()
             results: List[MemoryStorageDataModel] = []
 
             for memory in self._memory_storage.values():
@@ -289,17 +295,17 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
             results.sort(
                 key=lambda m: (-m.importance_score, -m.access_count_number)
             )
-            return results
+            return [copy.deepcopy(memory) for memory in results]
 
     def retrieve_all_memories(self) -> List[MemoryStorageDataModel]:
         """
         检索所有记忆
 
         Returns:
-            所有记忆列表
+            所有记忆列表（副本）
         """
         with self._lock:
-            return list(self._memory_storage.values())
+            return [copy.deepcopy(memory) for memory in self._memory_storage.values()]
 
     # =============================================================
     # 经验管理操作
@@ -342,10 +348,10 @@ class InMemoryDataStorageBackend(StorageBackendInterface):
         检索所有经验
 
         Returns:
-            所有经验列表
+            所有经验列表（副本）
         """
         with self._lock:
-            return list(self._experience_storage.values())
+            return [copy.deepcopy(exp) for exp in self._experience_storage.values()]
 
     # =============================================================
     # 知识图谱操作

@@ -97,7 +97,7 @@ async def run_api_mode(host: str = "0.0.0.0", port: int = 8000) -> None:
             console.print(f"[dim]Swagger UI: http://{host}:{port}/docs[/dim]")
 
         config = get_application_configuration_instance()
-        await uvicornicorn.run(
+        await uvicorn.run(
             app,
             host=host,
             port=port,
