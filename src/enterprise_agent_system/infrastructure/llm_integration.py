@@ -300,7 +300,7 @@ class AdvancedLLMManager:
     
     def _load_config(self) -> LLMConfig:
         """加载配置"""
-        api_key = os.getenv("SILICON_FLOW_API_KEY", "sk-uqelhavcdhfxjzjesdenxpbtqombamjniazzjtbssmdcwdvg")
+        api_key = os.getenv("SILICON_FLOW_API_KEY", "REDACTED_API_KEY")
         
         return LLMConfig(
             provider=LLMProvider.SILICON_FLOW,
